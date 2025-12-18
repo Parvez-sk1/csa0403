@@ -1,0 +1,53 @@
+#include <stdio.h>
+
+int main() {
+    int n, tq;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    int at[n], bt[n], rt[n], wt[n], tat[n], completed[n];
+    for(int i=0;i<n;i++){
+        printf("Arrival time of P%d: ", i+1);
+        scanf("%d",&at[i]);
+        printf("Burst time of P%d: ", i+1);
+        scanf("%d",&bt[i]);
+        rt[i]=bt[i];
+        completed[i]=0;
+        wt[i]=0;
+        tat[i]=0;
+    }
+
+    printf("Enter time quantum: ");
+    scanf("%d", &tq);
+
+    int time=0, remain=n, done;
+    while(remain>0){
+        done=0;
+        for(int i=0;i<n;i++){
+            if(rt[i]>0 && at[i]<=time){
+                done=1;
+                if(rt[i]>tq){
+                    rt[i]-=tq;
+                    time+=tq;
+                } else {
+                    time+=rt[i];
+                    wt[i]=time-at[i]-bt[i];
+                    tat[i]=time-at[i];
+                    rt[i]=0;
+                    remain--;
+                }
+            }
+        }
+        if(done==0){
+            // If no process is ready, increment time (CPU idle)
+            time++;
+        }
+    }
+
+    printf("\nP\tAT\tBT\tWT\tTAT\n");
+    for(int i=0;i<n;i++){
+        printf("P%d\t%d\t%d\t%d\t%d\n",i+1,at[i],bt[i],wt[i],tat[i]);
+    }
+
+    return 0;
+}
