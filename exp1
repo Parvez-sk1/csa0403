@@ -1,0 +1,30 @@
+#include <stdio.h>
+#include <unistd.h>   // for fork(), getpid(), getppid()
+#include <sys/types.h> // for pid_t
+
+int main() {
+    int num;
+    pid_t pid;
+
+    // Take input from user
+    printf("Enter a number: ");
+    scanf("%d", &num);
+
+    // Create a child process
+    pid = fork();
+
+    if (pid < 0) {
+        // Fork failed
+        printf("Fork failed\n");
+    }
+    else if (pid == 0) {
+        // Child process
+        printf("Child Process: PID = %d, PPID = %d, Number = %d\n", getpid(), getppid(), num);
+    }
+    else {
+        // Parent process
+        printf("Parent Process: PID = %d, PPID = %d, Number = %d\n", getpid(), getppid(), num);
+    }
+
+    return 0;
+}
