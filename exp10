@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int buffer_size;      // Size of buffer
+int *buffer;          // Buffer array
+int in = 0, out = 0;  // Indexes for producer/consumer
+
+sem_t empty, full, mutex;
+
+int items_to_produce;
+int produce_delay, consume_delay;
+
+void* producer(void* arg) {
+    for(int i = 1; i <= items_to_produce; i++) {
+        sem_wait(&empty);
+        sem_wait(&mutex);
+
+        buffer[in] = i;
+        printf("Produced: %d at index %d\n", i, in);
+        in = (in + 1) % buffer_size;
+
+        sem_post(&mutex);
+        sem_post(&full);
+
+        sleep(produce_delay); // Simulate production time
+    }
+    return NULL;
+}
+
+void* consumer(void* arg) {
+    for(int i = 1; i <= items_to_produce; i++) {
+        sem_wait(&full);
+        sem_wait(&mutex);
+
+        int item = buffer[out];
+        printf("Consumed: %d at index %d\n", item, out);
+        out = (out + 1) % buffer_size;
+
+        sem_post(&mutex);
+        sem_post(&empty);
+
+        sleep(consume_delay); // Simulate consumption time
+    }
+    return NULL;
+}
+
+int main() {
+    printf("Enter buffer size: ");
+    scanf("%d", &buffer_size);
+
+    printf("Enter number of items to produce/consume: ");
+    scanf("%d", &items_to_produce);
+
+    printf("Enter producer delay (seconds): ");
+    scanf("%d", &produce_delay);
+
+    printf("Enter consumer delay (seconds): ");
+    scanf("%d", &consume_delay);
+
+    buffer = (int*)malloc(buffer_size * sizeof(int));
+
+    sem_init(&empty, 0, buffer_size); // Initially all empty
+    sem_init(&full, 0, 0);            // Initially no full slots
+    sem_init(&mutex, 0, 1);           // Mutex for critical section
+
+    pthread_t prod, cons;
+    pthread_create(&prod, NULL, producer, NULL);
+    pthread_create(&cons, NULL, consumer, NULL);
+
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    free(buffer);
+    return 0;
+}
