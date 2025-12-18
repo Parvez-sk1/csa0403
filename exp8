@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#include <stdlib.h>  // For malloc
+
+int N;               // Number of philosophers
+int thinking_time;   // Time to think
+int eating_time;     // Time to eat
+sem_t *chopstick;    // Array of semaphores for chopsticks
+
+void* philosopher(void* arg) {
+    int id = *(int*)arg;
+
+    printf("Philosopher %d is thinking\n", id);
+    sleep(thinking_time);
+
+    // Pick up chopsticks
+    sem_wait(&chopstick[id]);               // Left chopstick
+    sem_wait(&chopstick[(id+1) % N]);       // Right chopstick
+
+    printf("Philosopher %d is eating\n", id);
+    sleep(eating_time);
+
+    // Put down chopsticks
+    sem_post(&chopstick[id]);
+    sem_post(&chopstick[(id+1) % N]);
+
+    printf("Philosopher %d finished eating\n", id);
+    free(arg); // free allocated memory for this thread
+    return NULL;
+}
+
+int main() {
+    printf("Enter number of philosophers: ");
+    scanf("%d", &N);
+    printf("Enter thinking time (seconds): ");
+    scanf("%d", &thinking_time);
+    printf("Enter eating time (seconds): ");
+    scanf("%d", &eating_time);
+
+    pthread_t ph[N];
+    chopstick = (sem_t*)malloc(N * sizeof(sem_t));
+
+    // Initialize semaphores
+    for(int i = 0; i < N; i++)
+        sem_init(&chopstick[i], 0, 1);
+
+    // Create philosopher threads
+    for(int i = 0; i < N; i++) {
+        int *id = (int*)malloc(sizeof(int));
+        *id = i;
+        pthread_create(&ph[i], NULL, philosopher, id);
+    }
+
+    // Wait for all philosophers to finish
+    for(int i = 0; i < N; i++)
+        pthread_join(ph[i], NULL);
+
+    free(chopstick);
+    return 0;
+}
