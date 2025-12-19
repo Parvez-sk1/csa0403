@@ -1,0 +1,56 @@
+#include <stdio.h>
+
+int main() {
+    int frames, pages;
+    int pageFaults = 0;
+
+    printf("Enter number of frames: ");
+    scanf("%d", &frames);
+
+    printf("Enter number of pages: ");
+    scanf("%d", &pages);
+
+    int reference[pages];
+    printf("Enter the page reference string:\n");
+    for(int i = 0; i < pages; i++)
+        scanf("%d", &reference[i]);
+
+    int frame[frames];
+    for(int i = 0; i < frames; i++)
+        frame[i] = -1;   // Initialize frames as empty
+
+    int index = 0;
+
+    printf("\nPage Replacement Process:\n");
+
+    for(int i = 0; i < pages; i++) {
+        int found = 0;
+
+        // Check if page already exists
+        for(int j = 0; j < frames; j++) {
+            if(frame[j] == reference[i]) {
+                found = 1;
+                break;
+            }
+        }
+
+        if(!found) {
+            frame[index] = reference[i];
+            index = (index + 1) % frames;
+            pageFaults++;
+        }
+
+        // Display frame contents
+        printf("Page %d -> ", reference[i]);
+        for(int j = 0; j < frames; j++) {
+            if(frame[j] != -1)
+                printf("%d ", frame[j]);
+            else
+                printf("- ");
+        }
+        printf("\n");
+    }
+
+    printf("\nTotal Page Faults = %d\n", pageFaults);
+    return 0;
+}
