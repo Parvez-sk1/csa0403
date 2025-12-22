@@ -1,0 +1,35 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+int n;   // number of threads
+
+void* task(void* arg) {
+    int id = *(int*)arg;
+    printf("Thread %d is running\n", id);
+    sleep(1);  // simulate work
+    printf("Thread %d finished execution\n", id);
+    free(arg);
+    return NULL;
+}
+
+int main() {
+    printf("Enter number of threads: ");
+    scanf("%d", &n);
+
+    pthread_t threads[n];
+
+    for(int i = 0; i < n; i++) {
+        int *id = (int*)malloc(sizeof(int));
+        *id = i + 1;
+        pthread_create(&threads[i], NULL, task, id);
+    }
+
+    // Wait for all threads to finish
+    for(int i = 0; i < n; i++)
+        pthread_join(threads[i], NULL);
+
+    printf("All threads completed\n");
+    return 0;
+}
