@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>   // for fork(), getpid(), getppid()
-#include <sys/types.h> // for pid_t
+#include <sys/types.h> // for pid_t 
 
 int main() {
     int num;
