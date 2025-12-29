@@ -1,0 +1,40 @@
+#include <stdio.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <string.h>
+
+int main() {
+    DIR *dp;
+    struct dirent *entry;
+    struct stat fileStat;
+    char path[100];
+
+    printf("Enter directory path (or . for current directory): ");
+    scanf("%s", path);
+
+    dp = opendir(path);
+    if (dp == NULL) {
+        printf("Cannot open directory\n");
+        return 1;
+    }
+
+    printf("\nContents of directory:\n");
+
+    while ((entry = readdir(dp)) != NULL) {
+        char fullpath[200];
+        sprintf(fullpath, "%s/%s", path, entry->d_name);
+
+        stat(fullpath, &fileStat);
+
+        // Display file type
+        if (S_ISDIR(fileStat.st_mode))
+            printf("DIR  ");
+        else
+            printf("FILE ");
+
+        printf("%s\n", entry->d_name);
+    }
+
+    closedir(dp);
+    return 0;
+}
