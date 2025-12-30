@@ -1,0 +1,63 @@
+#include <stdio.h>
+#include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
+
+void printPermissions(mode_t mode) {
+    // Owner permissions
+    printf("Owner: ");
+    printf((mode & S_IRUSR) ? "r" : "-");
+    printf((mode & S_IWUSR) ? "w" : "-");
+    printf((mode & S_IXUSR) ? "x" : "-");
+    printf("\n");
+
+    // Group permissions
+    printf("Group: ");
+    printf((mode & S_IRGRP) ? "r" : "-");
+    printf((mode & S_IWGRP) ? "w" : "-");
+    printf((mode & S_IXGRP) ? "x" : "-");
+    printf("\n");
+
+    // Others permissions
+    printf("Others: ");
+    printf((mode & S_IROTH) ? "r" : "-");
+    printf((mode & S_IWOTH) ? "w" : "-");
+    printf((mode & S_IXOTH) ? "x" : "-");
+    printf("\n");
+}
+
+int main() {
+    char filename[100];
+    struct stat fileStat;
+
+    printf("Enter file name: ");
+    scanf("%s", filename);
+
+    // Get file information
+    if (stat(filename, &fileStat) < 0) {
+        perror("stat failed");
+        return 1;
+    }
+
+    printf("\n--- File Information ---\n");
+
+    // File type
+    printf("File Type: ");
+    if (S_ISREG(fileStat.st_mode)) printf("Regular File\n");
+    else if (S_ISDIR(fileStat.st_mode)) printf("Directory\n");
+    else if (S_ISLNK(fileStat.st_mode)) printf("Symbolic Link\n");
+
+    // File owner
+    struct passwd *pw = getpwuid(fileStat.st_uid);
+    printf("Owner: %s\n", pw->pw_name);
+
+    // File group
+    struct group *gr = getgrgid(fileStat.st_gid);
+    printf("Group: %s\n", gr->gr_name);
+
+    // Permissions
+    printf("\n--- Permissions ---\n");
+    printPermissions(fileStat.st_mode);
+
+    return 0;
+}
