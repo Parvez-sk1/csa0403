@@ -7,7 +7,7 @@ int main() {
     char data[100];
     char readData[100];
 
-    // Get file name
+    // Get file name 
     printf("Enter file name: ");
     scanf("%s", filename);
 
