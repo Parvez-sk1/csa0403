@@ -1,0 +1,68 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define SIZE 5        // buffer size
+
+int buffer[SIZE];
+int in = 0, out = 0;
+
+sem_t empty, full;    // semaphores
+pthread_mutex_t mutex; // mutex lock
+
+void* producer(void* arg) {
+    int item = 1;
+
+    while (1) {
+        sem_wait(&empty);       // wait for empty slot
+        pthread_mutex_lock(&mutex);
+
+        buffer[in] = item;
+        printf("Producer produced: %d at index %d\n", item, in);
+        in = (in + 1) % SIZE;
+        item++;
+
+        pthread_mutex_unlock(&mutex);
+        sem_post(&full);      // signal full slot
+
+        sleep(1);  // Simulate time
+    }
+}
+
+void* consumer(void* arg) {
+    int item;
+
+    while (1) {
+        sem_wait(&full);      // wait for item
+        pthread_mutex_lock(&mutex);
+
+        item = buffer[out];
+        printf("Consumer consumed: %d from index %d\n", item, out);
+        out = (out + 1) % SIZE;
+
+        pthread_mutex_unlock(&mutex);
+        sem_post(&empty);     // signal empty slot
+
+        sleep(2); // Simulate time
+    }
+}
+
+int main() {
+    pthread_t prod, cons;
+
+    // Initialize semaphores and mutex
+    sem_init(&empty, 0, SIZE); // all slots empty initially
+    sem_init(&full, 0, 0);     // nothing produced yet
+    pthread_mutex_init(&mutex, NULL);
+
+    // Create threads
+    pthread_create(&prod, NULL, producer, NULL);
+    pthread_create(&cons, NULL, consumer, NULL);
+
+    // Wait for threads (runs indefinitely)
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+
+    return 0;
+}
