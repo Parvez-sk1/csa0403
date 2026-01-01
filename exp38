@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <unistd.h>
+#include <string.h>
+
+// message structure
+struct msg_buffer {
+    long msg_type;
+    char msg_text[100];
+} message;
+
+int main() {
+    key_t key;
+    int msgid;
+
+    // Generate unique key
+    key = ftok("progfile", 65);
+
+    // Create message queue
+    msgid = msgget(key, 0666 | IPC_CREAT);
+    if (msgid < 0) {
+        perror("msgget failed");
+        return 1;
+    }
+
+    int pid = fork();
+
+    if (pid > 0) {
+        // Parent – Sender
+        message.msg_type = 1;
+
+        printf("Parent: Enter a message to send: ");
+        scanf("%[^\n]", message.msg_text);
+
+        // send message
+        msgsnd(msgid, &message, sizeof(message.msg_text), 0);
+
+        printf("Parent sent: %s\n", message.msg_text);
+
+        wait(NULL); // wait for child
+    } 
+    else if (pid == 0) {
+        // Child – Receiver
+        sleep(1); // wait for parent message
+
+        msgrcv(msgid, &message, sizeof(message.msg_text), 1, 0);
+
+        printf("Child received: %s\n", message.msg_text);
+
+        // Remove message queue (child does cleanup)
+        msgctl(msgid, IPC_RMID, NULL);
+    }
+    else {
+        printf("Fork failed!");
+    }
+
+    return 0;
+}
