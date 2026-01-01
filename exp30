@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct File {
+    char name[20];
+    int indexBlock;
+    int blockCount;
+    int *blocks;   // stores block numbers
+};
+
+int main() {
+    int n;
+
+    printf("Enter number of files: ");
+    scanf("%d", &n);
+
+    struct File files[n];
+
+    for (int i = 0; i < n; i++) {
+        printf("\nEnter file name: ");
+        scanf("%s", files[i].name);
+
+        printf("Enter index block number: ");
+        scanf("%d", &files[i].indexBlock);
+
+        printf("Enter number of blocks for %s: ", files[i].name);
+        scanf("%d", &files[i].blockCount);
+
+        files[i].blocks = (int*)malloc(files[i].blockCount * sizeof(int));
+
+        printf("Enter the block numbers:\n");
+        for (int j = 0; j < files[i].blockCount; j++) {
+            scanf("%d", &files[i].blocks[j]);
+        }
+    }
+
+    // Display File Table
+    printf("\n\n--- Indexed File Allocation Table ---\n");
+
+    for (int i = 0; i < n; i++) {
+        printf("\nFile: %s\n", files[i].name);
+        printf("Index Block: %d\n", files[i].indexBlock);
+
+        printf("Blocks: ");
+        for (int j = 0; j < files[i].blockCount; j++) {
+            printf("%d ", files[i].blocks[j]);
+        }
+        printf("\n");
+    }
+
+    return 0;
+}
