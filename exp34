@@ -1,0 +1,102 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Employee {
+    int id;
+    char name[30];
+    float salary;
+};
+
+int main() {
+    FILE *fp;
+    struct Employee emp;
+    int choice, record, empID;
+
+    fp = fopen("employee.dat", "rb+");
+
+    if (fp == NULL) {
+        fp = fopen("employee.dat", "wb+");
+        if (fp == NULL) {
+            printf("Cannot open file.\n");
+            return 1;
+        }
+    }
+
+    do {
+        printf("\n---- Employee Random Access File ----");
+        printf("\n1. Add Employee");
+        printf("\n2. Display All Employees");
+        printf("\n3. Access Employee by Record Number");
+        printf("\n4. Update Employee Salary by ID");
+        printf("\n5. Exit");
+        printf("\nEnter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) 
+        {
+            case 1:
+                printf("Enter Employee ID: ");
+                scanf("%d", &emp.id);
+                printf("Enter Name: ");
+                scanf("%s", emp.name);
+                printf("Enter Salary: ");
+                scanf("%f", &emp.salary);
+
+                fseek(fp, 0, SEEK_END);
+                fwrite(&emp, sizeof(emp), 1, fp);
+                printf("Employee Added!\n");
+                break;
+
+            case 2:
+                rewind(fp);
+                printf("\n--- Employee Records ---\n");
+                while (fread(&emp, sizeof(emp), 1, fp)) {
+                    printf("ID: %d | Name: %s | Salary: %.2f\n",
+                           emp.id, emp.name, emp.salary);
+                }
+                break;
+
+            case 3:
+                printf("Enter record number to access (starting from 1): ");
+                scanf("%d", &record);
+                fseek(fp, (record - 1) * sizeof(emp), SEEK_SET);
+                
+                if (fread(&emp, sizeof(emp), 1, fp))
+                    printf("Record %d -> ID: %d | Name: %s | Salary: %.2f\n",
+                           record, emp.id, emp.name, emp.salary);
+                else
+                    printf("Invalid record number!\n");
+                break;
+
+            case 4:
+                printf("Enter Employee ID to update salary: ");
+                scanf("%d", &empID);
+
+                rewind(fp);
+                while (fread(&emp, sizeof(emp), 1, fp)) {
+                    if (emp.id == empID) {
+                        printf("Current Salary: %.2f\n", emp.salary);
+                        printf("Enter New Salary: ");
+                        scanf("%f", &emp.salary);
+
+                        fseek(fp, -sizeof(emp), SEEK_CUR);
+                        fwrite(&emp, sizeof(emp), 1, fp);
+                        printf("Salary Updated!\n");
+                        break;
+                    }
+                }
+                break;
+
+            case 5:
+                fclose(fp);
+                printf("Exiting...\n");
+                break;
+
+            default:
+                printf("Invalid Choice\n");
+        }
+
+    } while (choice != 5);
+
+    return 0;
+}
