@@ -1,0 +1,68 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Block {
+    int blockNumber;
+    struct Block *next;
+};
+
+struct File {
+    char name[20];
+    struct Block *start;
+    struct Block *end;
+} files[10];
+
+int main() {
+    int n, i, j, k, b, numBlocks;
+
+    printf("Enter number of files: ");
+    scanf("%d", &n);
+
+    for(i = 0; i < n; i++) {
+        printf("\nEnter file name: ");
+        scanf("%s", files[i].name);
+
+        printf("Enter number of blocks for %s: ", files[i].name);
+        scanf("%d", &numBlocks);
+
+        files[i].start = NULL;
+        files[i].end = NULL;
+
+        printf("Enter block numbers:\n");
+        for(j = 0; j < numBlocks; j++) {
+            scanf("%d", &b);
+
+            // Create new block
+            struct Block *newBlock = (struct Block*)malloc(sizeof(struct Block));
+            newBlock->blockNumber = b;
+            newBlock->next = NULL;
+
+            // First block
+            if(files[i].start == NULL) {
+                files[i].start = newBlock;
+                files[i].end = newBlock;
+            } else {
+                files[i].end->next = newBlock;
+                files[i].end = newBlock;
+            }
+        }
+    }
+
+    // Display file allocation table
+    printf("\n\n--- Linked File Allocation Table ---\n");
+    for(i = 0; i < n; i++) {
+        printf("\nFile: %s\n", files[i].name);
+        printf("Start Block: %d\n", files[i].start->blockNumber);
+        printf("End Block: %d\n", files[i].end->blockNumber);
+        printf("Blocks: ");
+
+        struct Block *temp = files[i].start;
+        while(temp != NULL) {
+            printf("%d -> ", temp->blockNumber);
+            temp = temp->next;
+        }
+        printf("NULL\n");
+    }
+
+    return 0;
+}
