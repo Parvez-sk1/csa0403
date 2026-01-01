@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+int main() {
+    // Generate unique key
+    key_t key = ftok("shmfile", 65);
+
+    // Create shared memory of size 1024 bytes
+    int shmid = shmget(key, 1024, 0666 | IPC_CREAT);
+
+    // Fork into parent and child
+    int pid = fork();
+
+    if (pid > 0) {
+        // ---------------- Parent Process (Writer) ----------------
+        wait(NULL); // Ensures child waits first (optional for clarity)
+
+        char *str = (char*) shmat(shmid, (void*)0, 0);
+
+        printf("Parent: Enter a message to store in shared memory: ");
+        fgets(str, 100, stdin);
+
+        printf("Parent wrote: %s\n", str);
+
+        shmdt(str); // detach
+    }
+    else if (pid == 0) {
+        // ---------------- Child Process (Reader) ----------------
+        sleep(1); // Wait briefly for parent to write
+
+        char *str = (char*) shmat(shmid, (void*)0, 0);
+
+        printf("Child read from shared memory: %s\n", str);
+
+        shmdt(str);  // detach
+        shmctl(shmid, IPC_RMID, NULL); // destroy shared memory
+    }
+    else {
+        printf("Fork failed!\n");
+    }
+
+    return 0;
+}
